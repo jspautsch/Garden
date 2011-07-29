@@ -453,9 +453,18 @@ if (!function_exists('ChangeBasename')) {
    }
 }
 
+// Smarty
 if (!function_exists('CheckPermission')) {
    function CheckPermission($PermissionName) {
       $Result = Gdn::Session()->CheckPermission($PermissionName);
+      return $Result;
+   }
+}
+
+// Smarty sux
+if (!function_exists('MultiCheckPermission')) {
+   function MultiCheckPermission($PermissionName) {
+      $Result = Gdn::Session()->CheckPermission($PermissionName, FALSE);
       return $Result;
    }
 }
@@ -931,6 +940,19 @@ if (!function_exists('ForceSSL')) {
          if (Gdn::Request()->Scheme() != 'https')
             Redirect(Gdn::Request()->Url('', TRUE, TRUE));
       }
+   }
+}
+
+if (!function_exists('ForceNoSSL')) {
+   /**
+    * Checks the current url for SSL and redirects to SSL version if not
+    * currently on it. Call at the beginning of any method you want forced to
+    * be in SSL. Garden.AllowSSL must be TRUE in order for this function to
+    * work.
+    */
+   function ForceNoSSL() {
+      if (Gdn::Request()->Scheme() != 'http')
+         Redirect(Gdn::Request()->Url('', TRUE, FALSE));
    }
 }
 
@@ -2187,23 +2209,6 @@ if (!function_exists('TouchValue')) {
 
       return GetValue($Key, $Collection);
 	}
-}
-
-if (!function_exists('Translate')) {
-   /**
-	 * Translates a code into the selected locale's definition.
-	 *
-	 * @param string $Code The code related to the language-specific definition.
-    *   Codes thst begin with an '@' symbol are treated as literals and not translated.
-	 * @param string $Default The default value to be displayed if the translation code is not found.
-	 * @return string The translated string or $Code if there is no value in $Default.
-	 * @deprecated
-	 * @see Gdn::Translate()
-	 */
-   function Translate($Code, $Default = '') {
-      trigger_error('Translate() is deprecated. Use T() instead.', E_USER_DEPRECATED);
-      return Gdn::Translate($Code, $Default);
-   }
 }
 
 if (!function_exists('TrueStripSlashes')) {

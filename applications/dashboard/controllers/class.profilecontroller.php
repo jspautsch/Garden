@@ -275,13 +275,9 @@ class ProfileController extends Gdn_Controller {
       $this->GetUserInfo(); 
       $this->SetTabView('Notifications');
       $Session = Gdn::Session();
+      
       // Drop notification count back to zero.
-      $SQL = Gdn::SQL();
-      $SQL
-         ->Update('User')
-         ->Set('CountNotifications', '0')
-         ->Where('UserID', $Session->UserID)
-         ->Put();
+      Gdn::UserModel()->SetField($Session->UserID, 'CountNotifications', '0');
       
       $this->ActivityModel = new ActivityModel();
       $this->ActivityData = $this->ActivityModel->GetNotifications($Session->UserID, $Offset, $Limit);
@@ -662,6 +658,9 @@ class ProfileController extends Gdn_Controller {
       if (!is_array($TabName)) {
 			if ($TabHtml == '')
 				$TabHtml = $TabName;
+         
+         if (!$CssClass && $TabUrl == Gdn::Request()->Path())
+            $CssClass = 'Active';
 				
          $TabName = array($TabName => array('TabUrl' => $TabUrl, 'CssClass' => $CssClass, 'TabHtml' => $TabHtml));
       }
@@ -693,7 +692,7 @@ class ProfileController extends Gdn_Controller {
          if ($this->User->UserID != $ViewingUserID) {
             // Include user js files for people with edit users permissions
             if ($Session->CheckPermission('Garden.Users.Edit')) {
-              $this->AddJsFile('jquery.gardenmorepager.js');
+//              $this->AddJsFile('jquery.gardenmorepager.js');
               $this->AddJsFile('user.js');
             }
             
@@ -847,11 +846,6 @@ class ProfileController extends Gdn_Controller {
 			
 			$this->SetData('Profile', $this->User);
 			$this->SetData('UserRoles', $this->Roles);
-			
-			// If the photo contains an http://, it is just an icon (probably from facebook or some external service), don't show it here because the Photo property is used to define logic around allowing thumbnail edits, etc.
-			if ($this->User->Photo != '' && in_array(strtolower(substr($this->User->Photo, 0, 7)), array('http://', 'https:/')))
-				$this->User->Photo = '';
-			
       }
       
       // Make sure the userphoto module gets added to the page

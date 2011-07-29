@@ -41,7 +41,7 @@ class Gdn_Memcached extends Gdn_Cache {
       
       $this->Memcache = new Memcached;
       
-      $this->RegisterFeature(Gdn_Cache::FEATURE_COMPRESS, MEMCACHE_COMPRESSED);
+      $this->RegisterFeature(Gdn_Cache::FEATURE_COMPRESS, Memcached::OPT_COMPRESSION);
       $this->RegisterFeature(Gdn_Cache::FEATURE_EXPIRY);
       $this->RegisterFeature(Gdn_Cache::FEATURE_TIMEOUT);
       $this->RegisterFeature(Gdn_Cache::FEATURE_NOPREFIX);
@@ -179,8 +179,27 @@ class Gdn_Memcached extends Gdn_Cache {
    public function Get($Key, $Options = array()) {
       $FinalOptions = array_merge($this->StoreDefaults, $Options);
       
-      $RealKey = $this->MakeKey($Key, $FinalOptions);
-      $Data = $this->Memcache->get($RealKey);
+      if (is_array($Key)) {
+         $RealKeys = array();
+         foreach ($Key as $MultiKey)
+            $RealKeys[] = $this->MakeKey($MultiKey, $Options);
+         
+         $Data = $this->Memcache->getMulti($RealKeys);
+         
+         if (is_array($Data) && $Data !== FALSE) {
+            $Data2 = array();
+            foreach ($Data as $Index => $Value) {
+               $Data2[$this->StripKey($Index, $Options)] = $Value;
+            }
+            $Data = $Data2;
+         } else {
+            $Data = array();
+         }
+      } else {
+         $RealKey = $this->MakeKey($Key, $FinalOptions);
+         $Data = $this->Memcache->get($RealKey);
+      }
+      
       return ($Data === FALSE) ? $this->Fallback($Key,$Options) : $Data;
    }
    

@@ -66,16 +66,17 @@ class CategoriesController extends VanillaController {
     * @param int $Offset Number of discussions to skip.
     */
    public function Index($CategoryIdentifier = '', $Page = '0') {
-      if (!is_numeric($CategoryIdentifier))
-         $Category = $this->CategoryModel->GetFullByUrlCode($CategoryIdentifier);
-      else
-         $Category = $this->CategoryModel->GetFull($CategoryIdentifier);
+//      if (!is_numeric($CategoryIdentifier))
+//         $Category = $this->CategoryModel->GetFullByUrlCode($CategoryIdentifier);
+//      else
+//         $Category = $this->CategoryModel->GetFull($CategoryIdentifier);
+      $Category = CategoryModel::Categories($CategoryIdentifier);
       
-      if ($Category === FALSE) {
+      if (empty($Category)) {
          if ($CategoryIdentifier)
             throw NotFoundException();
-         return $this->Discussions();
       }
+      $Category = (object)$Category;
       Gdn_Theme::SetSection('DiscussionList');
 			
 		// Load the breadcrumbs.
@@ -188,6 +189,15 @@ class CategoriesController extends VanillaController {
 
       $this->CanonicalUrl(Url('/categories/all', TRUE));
       Gdn_Theme::SetSection('CategoryList');
+      
+      // Set a definition of the user's current timezone from the db. jQuery
+      // will pick this up, compare to the browser, and update the user's
+      // timezone if necessary.
+      $CurrentUser = Gdn::Session()->User;
+      if (is_object($CurrentUser)) {
+         $ClientHour = $CurrentUser->HourOffset + date('G', time());
+         $this->AddDefinition('SetClientHour', $ClientHour);
+      }
 
       $this->Render();
 	}
