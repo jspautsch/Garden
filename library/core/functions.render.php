@@ -186,7 +186,7 @@ if (!function_exists('Meta')) {
             $Item = implode(' ', $Item);
             break;
          case 'user':
-            $Item = UserAnchor($Data, 'User-Inline', $Name);
+            $Item = UserAnchor($Data, 'User-Inline', array('Prefix' => $Name, 'Photo' => TRUE));
             $HasLabel = TRUE;
             break;
          default:
@@ -274,15 +274,34 @@ function UnCamelCase($Str) {
  * Takes a user object, and writes out an achor of the user's name to the user's profile.
  */
 if (!function_exists('UserAnchor')) {
-   function UserAnchor($User, $CssClass = '', $Prefix = NULL) {
-      $Name = GetValue($Prefix.'Name', $User, T('Unknown'));
+   function UserAnchor($User, $CssClass = '', $Options = NULL) {
+      if (is_string($Options)) {
+         $Prefix = $Options;
+         $Options = array();
+      } elseif (is_array($Options)) {
+         $Prefix = GetValue('Prefix', $Options, '');
+      } else {
+         $Prefix = '';
+         $Options = array();
+      }
+      
+      if ($Prefix)
+         $User = UserBuilder($User, $Prefix);
+      
+      $Name = GetValue('Name', $User, T('Unknown'));
       if (!$Name)
          return '';
+      else
+         $Name = htmlspecialchars($Name);
+      
+      if (GetValue('Photo', $Options)) {
+         $Name = UserPhoto($User, array('Link' => FALSE, 'ImageClass' => 'ProfilePhotoInline')).$Name;
+      }
 
       if ($CssClass != '')
          $CssClass = ' class="'.$CssClass.'"';
 
-      return '<a href="'.htmlspecialchars(Url('/profile/'.rawurlencode($Name))).'"'.$CssClass.'>'.htmlspecialchars($Name).'</a>';
+      return '<a href="'.htmlspecialchars(Url(UserUrl($User))).'"'.$CssClass.'>'.$Name.'</a>';
    }
 }
 
@@ -311,12 +330,16 @@ if (!function_exists('UserBuilder')) {
  */
 if (!function_exists('UserPhoto')) {
    function UserPhoto($User, $Options = array()) {
-		$User = (object)$User;
+      if ($Px = GetValue('Prefix', $Options)) {
+         $User = UserBuilder($User, $Px);
+      } else {
+         $User = (object)$User;
+      }
       if (is_string($Options))
          $Options = array('LinkClass' => $Options);
       
       $LinkClass = GetValue('LinkClass', $Options, 'ProfileLink');
-      $ImgClass = GetValue('ImageClass', $Options, 'ProfilePhotoBig');
+      $ImgClass = GetValue('ImageClass', $Options, 'ProfilePhotoMedium');
       
       $LinkClass = $LinkClass == '' ? '' : ' class="'.$LinkClass.'"';
 
@@ -331,9 +354,15 @@ if (!function_exists('UserPhoto')) {
             $PhotoUrl = $Photo;
          }
          
-         return '<a title="'.htmlspecialchars($User->Name).'" href="'.Url('/profile/'.$User->UserID.'/'.rawurlencode($User->Name)).'"'.$LinkClass.'>'
-            .Img($PhotoUrl, array('alt' => htmlspecialchars($User->Name), 'class' => $ImgClass))
-            .'</a>';
+         $Img = Img($PhotoUrl, array('alt' => htmlspecialchars($User->Name), 'class' => $ImgClass));
+         
+         if (GetValue('Link', $Options, TRUE)) {
+            return '<a title="'.htmlspecialchars($User->Name).'" href="'.Url('/profile/'.$User->UserID.'/'.rawurlencode($User->Name)).'"'.$LinkClass.'>'
+               .$Img
+               .'</a>';
+         } else {
+            return $Img;
+         }
       } else {
          return '';
       }
