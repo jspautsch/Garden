@@ -1,25 +1,17 @@
 <?php if (!defined('APPLICATION')) exit();
-/*
-Copyright 2008, 2009 Vanilla Forums Inc.
-This file is part of Garden.
-Garden is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-Garden is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with Garden.  If not, see <http://www.gnu.org/licenses/>.
-Contact Vanilla Forums Inc. at support [at] vanillaforums [dot] com
-*/
 
 /**
- * Wrapper for connecting to remote web systems and returning response
+ * ProxyRequest handler class
  * 
- * ProxyRequest allows developers to make encapsulated, reusable connections
- * to remote systems and return the response as a string.
+ * This class abstracts the work of doing external requests.
  * 
  * @author Tim Gunter <tim@vanillaforums.com>
- * @copyright 2003 Vanilla Forums, Inc
- * @license http://www.opensource.org/licenses/gpl-2.0.php GPLv2
- * @package Garden
- * @since 2.0.18
+ * @copyright 2010, Tim Gunter 
+ * @license Proprietary
+ * @package Api
+ * @since 1.0
  */
+
 class ProxyRequest {
    
    protected static $ConnectionHandles;
@@ -47,7 +39,6 @@ class ProxyRequest {
    }
    
    protected function FsockConnect(&$Handle, $Host, $Port, $Options) {
-      
       $ConnectTimeout = GetValue('ConnectTimeout', $Options);
       $ReadTimeout = GetValue('Timeout', $Options);
       $Recycle = GetValue('Recycle', $Options);
@@ -109,7 +100,7 @@ class ProxyRequest {
       }
 
       if (!$Pointer)
-         throw new Exception(sprintf('Encountered an error while making a request to the remote server (%s): [%s] %s', $Url, $ErrorNumber, $Error));
+         throw new Exception(sprintf('Encountered an error while making a request to the remote server (%s): [%s] %s', $Host, $ErrorNumber, $Error));
 
       stream_set_timeout($Pointer, $ReadTimeout);
       
@@ -307,8 +298,8 @@ class ProxyRequest {
       return $this->ResponseBody;
    }
    
-   public function Request($Options, $QueryParams = array()) {
-   
+   public function Request($Options, $QueryParams = NULL) {
+      
       if (is_string($Options)) {
          $Options = array(
              'URL'      => $Options
@@ -340,6 +331,8 @@ class ProxyRequest {
       $this->ActionLog = array();
       
       $this->Options = $Options = array_merge($Defaults, $Options);
+      
+      if (is_null($QueryParams)) $QueryParams = array();
 
       $RelativeURL = GetValue('URL', $Options);
       $RequestMethod = GetValue('Method', $Options);
@@ -409,6 +402,8 @@ class ProxyRequest {
       if ((function_exists('curl_init') && !$Recycle) || !function_exists('fsockopen')) {
 
          //$Url = $Scheme.'://'.$Host.$Path;
+         $this->Action("cURL");
+
          $Handler = curl_init();
          curl_setopt($Handler, CURLOPT_URL, $Url);
          curl_setopt($Handler, CURLOPT_PORT, $Port);
@@ -434,6 +429,7 @@ class ProxyRequest {
          
          curl_close($Handler);
       } else if (function_exists('fsockopen')) {
+         $this->Action("fsockopen");
          
          $Pointer = FALSE;
          $HostAddress = $this->FsockConnect($Pointer, $Host, 80, $Options);

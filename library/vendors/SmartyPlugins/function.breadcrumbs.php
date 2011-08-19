@@ -10,21 +10,10 @@ Contact Vanilla Forums Inc. at support [at] vanillaforums [dot] com
 
 
 /**
- * Writes the search box to the page.
- *
- * @param array The parameters passed into the function. This currently takes no parameters.
- * @param Smarty The smarty object rendering the template.
- * @return The url.
+ * Render a breadcrumb trail for the user based on the page they are on.
  */
-function smarty_function_searchbox($Params, &$Smarty) {
-   $Form = Gdn::Factory('Form');
-   $Form->InputPrefix = '';
-   $Result =
-      $Form->Open(array('action' => Url('/search'), 'method' => 'get')).
-      $Form->TextBox('Search', array('placeholder' => T('Search'))).
-      $Form->Button('Go', array('Name' => '')).
-      $Form->Close();
-
-   return $Result;
+function smarty_function_breadcrumbs($Params, &$Smarty) {
+   $Breadcrumbs = $Smarty->Controller->Data('Breadcrumbs');
+   if (is_array($Breadcrumbs))
+      return Gdn_Theme::Breadcrumbs($Breadcrumbs);
 }
-

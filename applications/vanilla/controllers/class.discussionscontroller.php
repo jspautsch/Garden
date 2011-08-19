@@ -135,6 +135,10 @@ class DiscussionsController extends VanillaController {
       
       $this->SetData('CountTotal', $CountDiscussions + $Announcements->NumRows());
       
+//      var_dump($this->DiscussionData);
+//      die();
+      
+      
       if (!$this->Data('_PagerUrl'))
          $this->SetData('_PagerUrl', 'discussions/{Page}');
       $this->SetData('_Page', $Page);
@@ -341,7 +345,7 @@ class DiscussionsController extends VanillaController {
                ->Where('UserID', $UserID)
                ->Get()->Value('CountBookmarks', 0);
 
-            Gdn::SQL()->Put('User', array('CountBookmarks' => $CountBookmarks), array('UserID' => $UserID));
+            Gdn::UserModel()->SetField($UserID, 'CountBookmarks', $CountBookmarks);
          }
       }
       $this->SetData('CountBookmarks', $CountBookmarks);

@@ -59,7 +59,7 @@ class SplitMergePlugin extends Gdn_Plugin {
          return;
       
       // Verify that the user has permission to perform the split
-      $Sender->Permission('Vanilla.Discussions.Edit', TRUE, 'Category', $Discussion->CategoryID);
+      $Sender->Permission('Vanilla.Discussions.Edit', TRUE, 'Category', $Discussion->PermissionCategoryID);
       
       $CheckedComments = Gdn::UserModel()->GetAttribute($Session->User->UserID, 'CheckedComments', array());
       if (!is_array($CheckedComments))
@@ -74,31 +74,6 @@ class SplitMergePlugin extends Gdn_Plugin {
       }
       // Load category data.
       $Sender->ShowCategorySelector = (bool)C('Vanilla.Categories.Use');
-      if ($Sender->ShowCategorySelector) {
-         $CategoryModel = new CategoryModel();
-         $CategoryData = $CategoryModel->GetFull('', 'Vanilla.Discussions.Add');
-         $aCategoryData = array();
-         foreach ($CategoryData->Result() as $Category) {
-            if ($Category->CategoryID <= 0)
-               continue;
-            
-            if ($Discussion->CategoryID == $Category->CategoryID)
-               $Sender->Category = $Category;
-            
-            $CategoryName = $Category->Name;   
-            if ($Category->Depth > 1) {
-               $CategoryName = '↳ '.$CategoryName;
-               $CategoryName = str_pad($CategoryName, strlen($CategoryName) + $Category->Depth - 2, ' ', STR_PAD_LEFT);
-               $CategoryName = str_replace(' ', '&#160;', $CategoryName);
-            }
-            $aCategoryData[$Category->CategoryID] = $CategoryName;
-            $Sender->EventArguments['aCategoryData'] = &$aCategoryData;
-				$Sender->EventArguments['Category'] = &$Category;
-				$Sender->FireEvent('AfterCategoryItem');
-         }
-         $Sender->CategoryData = $aCategoryData;
-      }
-      
       $CountCheckedComments = count($CommentIDs);
       $Sender->SetData('CountCheckedComments', $CountCheckedComments);
       // Perform the split
@@ -117,7 +92,7 @@ class SplitMergePlugin extends Gdn_Plugin {
                ->Set('DiscussionID', $NewDiscussionID)
                ->WhereIn('CommentID', $CommentIDs)
                ->Put();
-            
+					
             // Update counts on both discussions
             $CommentModel = new CommentModel();
             $CommentModel->UpdateCommentCount($DiscussionID);
@@ -170,7 +145,7 @@ class SplitMergePlugin extends Gdn_Plugin {
          }
          if ($MergeDiscussion) {
             // Verify that the user has permission to perform the merge
-            $Sender->Permission('Vanilla.Discussions.Edit', TRUE, 'Category', $MergeDiscussion->CategoryID);
+            $Sender->Permission('Vanilla.Discussions.Edit', TRUE, 'Category', $MergeDiscussion->PermissionCategoryID);
             
             // Assign the comments to the new discussion record
             $DiscussionModel->SQL

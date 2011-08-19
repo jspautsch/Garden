@@ -353,7 +353,7 @@ if (!function_exists('UserPhoto')) {
          } else {
             $PhotoUrl = $Photo;
          }
-         
+         $Href = Url(UserUrl($User));
          $Img = Img($PhotoUrl, array('alt' => htmlspecialchars($User->Name), 'class' => $ImgClass));
          
          if (GetValue('Link', $Options, TRUE)) {
@@ -376,7 +376,11 @@ if (!function_exists('UserUrl')) {
     * @return string The url suitable to be passed into the Url() function.
     */
    function UserUrl($User) {
-      return '/profile/'.rawurlencode(GetValue('Name', $User));
+      static $NameUnique = NULL;
+      if ($NameUnique === NULL)
+         $NameUnique = C('Garden.Registration.NameUnique');
+      
+      return '/profile/'.($NameUnique ? '' : GetValue('UserID', $User, 0).'/').rawurlencode(GetValue('Name', $User));
    }
 }
 

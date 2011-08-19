@@ -581,4 +581,20 @@ class Gdn_Validation {
       
       return $this->_ValidationResults;
    }
+   
+   public function ResultsText() {
+      $Errors = array();
+      foreach ($this->Results() as $Name => $Value) {
+         if (is_array($Value)) {
+            foreach ($Value as $Code) {
+               $Errors[] = trim(sprintf(T($Code), T($Name)), '.');
+            }
+         } else {
+            $Errors[] = trim(sprintf(T($Value), T($Name)), '.');
+         }
+      }
+      
+      $Result = implode('. ', $Errors);
+      return $Result;
+   }
 }

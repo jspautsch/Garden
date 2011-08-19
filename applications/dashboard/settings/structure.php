@@ -208,6 +208,7 @@ if($PermissionModel instanceof PermissionModel) {
 $PermissionModel->Define(array(
    'Garden.Email.Manage',
    'Garden.Settings.Manage',
+   'Garden.Settings.View',
    'Garden.Routes.Manage',
    'Garden.Messages.Manage',
    'Garden.Applications.Manage',
@@ -315,6 +316,22 @@ $Construct->Table('Invitation')
    ->Column('DateInserted', 'datetime')
    ->Column('AcceptedUserID', 'int', TRUE)
    ->Set($Explicit, $Drop);
+   
+// Activity Table
+// Column($Name, $Type, $Length = '', $Null = FALSE, $Default = NULL, $KeyType = FALSE, $AutoIncrement = FALSE)
+$Construct->Table('Activity')
+	->PrimaryKey('ActivityID')
+   ->Column('CommentActivityID', 'int', TRUE, 'key')
+   ->Column('ActivityTypeID', 'int')
+   ->Column('ActivityUserID', 'int', TRUE, 'key')
+   ->Column('RegardingUserID', 'int', TRUE, 'key')
+   ->Column('Story', 'text', TRUE)
+   ->Column('Route', 'varchar(255)', TRUE)
+   ->Column('CountComments', 'int', '0')
+   ->Column('InsertUserID', 'int', TRUE, 'key')
+   ->Column('DateInserted', 'datetime')
+   ->Column('InsertIPAddress', 'varchar(15)', TRUE)
+   ->Set($Explicit, $Drop);
 
 // ActivityType Table
 $Construct->Table('ActivityType')
@@ -380,23 +397,6 @@ if (!$WallPostType) {
       ->Put();
 }
 
-
-// Activity Table
-// Column($Name, $Type, $Length = '', $Null = FALSE, $Default = NULL, $KeyType = FALSE, $AutoIncrement = FALSE)
-$Construct->Table('Activity')
-	->PrimaryKey('ActivityID')
-   ->Column('CommentActivityID', 'int', TRUE, 'key')
-   ->Column('ActivityTypeID', 'int')
-   ->Column('ActivityUserID', 'int', TRUE, 'key')
-   ->Column('RegardingUserID', 'int', TRUE, 'key')
-   ->Column('Story', 'text', TRUE)
-   ->Column('Route', 'varchar(255)', TRUE)
-   ->Column('CountComments', 'int', '0')
-   ->Column('InsertUserID', 'int', TRUE, 'key')
-   ->Column('DateInserted', 'datetime')
-   ->Column('InsertIPAddress', 'varchar(15)', TRUE)
-   ->Set($Explicit, $Drop);
-
 // Message Table
 $Construct->Table('Message')
 	->PrimaryKey('MessageID')
@@ -435,7 +435,7 @@ $Construct->Table('Tag')
 
 $Construct->Table('Log')
    ->PrimaryKey('LogID')
-   ->Column('Operation', array('Delete', 'Edit', 'Spam', 'Moderate'))
+   ->Column('Operation', array('Delete', 'Edit', 'Spam', 'Moderate', 'Error'))
    ->Column('RecordType', array('Discussion', 'Comment', 'User', 'Registration', 'Activity'), FALSE, 'index')
    ->Column('RecordID', 'int', NULL, 'index')
    ->Column('RecordUserID', 'int', NULL) // user responsible for the record

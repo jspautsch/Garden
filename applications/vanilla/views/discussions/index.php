@@ -9,7 +9,7 @@ if ($this->Data('CountTotal') > 0) {
    <?php include($this->FetchViewLocation('discussions')); ?>
 </ul>
 <?php
-   $PagerOptions = array('RecordCount' => $this->Data('CountDiscussions'));
+   $PagerOptions = array('RecordCount' => $this->Data('CountDiscussions'), 'CurrentRecords' => $this->Data('Discussions')->NumRows());
    if ($this->Data('_PagerUrl')) {
       $PagerOptions['Url'] = $this->Data('_PagerUrl');
    }

@@ -275,13 +275,9 @@ class ProfileController extends Gdn_Controller {
       $this->GetUserInfo(); 
       $this->SetTabView('Notifications');
       $Session = Gdn::Session();
+      
       // Drop notification count back to zero.
-      $SQL = Gdn::SQL();
-      $SQL
-         ->Update('User')
-         ->Set('CountNotifications', '0')
-         ->Where('UserID', $Session->UserID)
-         ->Put();
+      Gdn::UserModel()->SetField($Session->UserID, 'CountNotifications', '0');
       
       $this->ActivityModel = new ActivityModel();
       $this->ActivityData = $this->ActivityModel->GetNotifications($Session->UserID, $Offset, $Limit);
@@ -662,6 +658,9 @@ class ProfileController extends Gdn_Controller {
       if (!is_array($TabName)) {
 			if ($TabHtml == '')
 				$TabHtml = $TabName;
+         
+         if (!$CssClass && $TabUrl == Gdn::Request()->Path())
+            $CssClass = 'Active';
 				
          $TabName = array($TabName => array('TabUrl' => $TabUrl, 'CssClass' => $CssClass, 'TabHtml' => $TabHtml));
       }
@@ -689,17 +688,20 @@ class ProfileController extends Gdn_Controller {
          
          // Check that we have the necessary tools to allow image uploading
          $AllowImages = Gdn_UploadImage::CanUploadImages();
+			
+			// Is the photo hosted remotely?
+			$RemotePhoto = in_array(substr($this->User->Photo, 0, 7), array('http://', 'https:/'));
          
          if ($this->User->UserID != $ViewingUserID) {
             // Include user js files for people with edit users permissions
             if ($Session->CheckPermission('Garden.Users.Edit')) {
-              $this->AddJsFile('jquery.gardenmorepager.js');
+//              $this->AddJsFile('jquery.gardenmorepager.js');
               $this->AddJsFile('user.js');
             }
             
             // Add profile options for everyone
             $SideMenu->AddLink('Options', T('Change Picture'), '/profile/picture/'.$this->User->UserID.'/'.Gdn_Format::Url($this->User->Name), 'Garden.Users.Edit', array('class' => 'PictureLink'));
-            if ($this->User->Photo != '' && $AllowImages) {
+            if ($this->User->Photo != '' && $AllowImages && !$RemotePhoto) {
                $SideMenu->AddLink('Options', T('Edit Thumbnail'), '/profile/thumbnail/'.$this->User->UserID.'/'.Gdn_Format::Url($this->User->Name), 'Garden.Users.Edit', array('class' => 'ThumbnailLink'));
                $SideMenu->AddLink('Options', T('Remove Picture'), '/profile/removepicture/'.$this->User->UserID.'/'.Gdn_Format::Url($this->User->Name).'/'.$Session->TransientKey(), 'Garden.Users.Edit', array('class' => 'RemovePictureLink'));
             }
@@ -715,7 +717,7 @@ class ProfileController extends Gdn_Controller {
             if ($AllowImages)
                $SideMenu->AddLink('Options', T('Change My Picture'), '/profile/picture', FALSE, array('class' => 'PictureLink'));
                
-            if ($this->User->Photo != '' && $AllowImages) {
+            if ($this->User->Photo != '' && $AllowImages && !$RemotePhoto) {
                $SideMenu->AddLink('Options', T('Edit My Thumbnail'), '/profile/thumbnail', FALSE, array('class' => 'ThumbnailLink'));
                $SideMenu->AddLink('Options', T('Remove My Picture'), '/profile/removepicture/'.$Session->UserID.'/'.Gdn_Format::Url($Session->User->Name).'/'.$Session->TransientKey(), FALSE, array('class' => 'RemovePictureLink'));
             }
@@ -847,11 +849,6 @@ class ProfileController extends Gdn_Controller {
 			
 			$this->SetData('Profile', $this->User);
 			$this->SetData('UserRoles', $this->Roles);
-			
-			// If the photo contains an http://, it is just an icon (probably from facebook or some external service), don't show it here because the Photo property is used to define logic around allowing thumbnail edits, etc.
-			if ($this->User->Photo != '' && in_array(strtolower(substr($this->User->Photo, 0, 7)), array('http://', 'https:/')))
-				$this->User->Photo = '';
-			
       }
       
       // Make sure the userphoto module gets added to the page

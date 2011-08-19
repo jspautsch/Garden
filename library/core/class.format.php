@@ -216,6 +216,19 @@ class Gdn_Format {
       // $String = str_replace('\\', '\\', html_entity_decode($String, ENT_QUOTES));
       // return str_replace(array("'", "\n", "\r"), array('\\\'', '\\\n', '\\\r'), $String);
    }
+   
+   /**
+    * Takes a mixed variable, filters unsafe things, renders BBCode and returns it.
+    *
+    * @param mixed $Mixed An object, array, or string to be formatted.
+    * @return string
+    */
+   public static function Auto($Mixed) {
+      $Formatter = C('Garden.InputFormatter');
+      if (!method_exists('Gdn_Format', $Formatter)) return $Mixed;
+      
+      return Gdn_Format::$Formatter($Mixed);
+   }
 
    /**
     * Takes a mixed variable.
@@ -724,6 +737,8 @@ class Gdn_Format {
             case '>':
                $InTag = FALSE;
                break;
+            case '':
+               break;
             default;
                if ($InTag) {
                   if ($Str[0] == '/') {
@@ -793,27 +808,29 @@ class Gdn_Format {
 //      $End = $Matches[3];
 //      $Url = $Matches[4];
 
-      if ($InOut == '<')
+      if ($InOut == '<') {
          $InTag++;
-      elseif ($InOut == '</') {
+         if ($Tag == 'a')
+            $InAnchor = TRUE;
+      } elseif ($InOut == '</') {
          $InTag++;
-         $InAnchor = FALSE;
+         if ($Tag == 'a')
+            $InAnchor = FALSE;
       } elseif ($Matches[3])
          $InTag--;
 
-      if ($Tag == 'a')
-         $InAnchor = TRUE;
-
-      if (!isset($Matches[4]) || $InTag)
+      if (!isset($Matches[4]) || $InTag || $InAnchor)
          return $Matches[0];
       $Url = $Matches[4];
 
-      if (preg_match('`(?:https?|ftp)://www.youtube.com\/watch\?v=([^&]+)`', $Url, $Matches) && C('Garden.Format.YouTube')) {
+      if ((preg_match('`(?:https?|ftp)://www\.youtube\.com\/watch\?v=([^&]+)`', $Url, $Matches) 
+         || preg_match('`(?:https?)://www\.youtu\.be\/([^&]+)`', $Url, $Matches)) 
+         && C('Garden.Format.YouTube')) {
          $ID = $Matches[1];
          $Result = <<<EOT
 <div class="Video"><object width="$Width" height="$Height"><param name="movie" value="http://www.youtube.com/v/$ID&amp;hl=en_US&amp;fs=1&amp;"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/$ID&amp;hl=en_US&amp;fs=1&amp;" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="$Width" height="$Height"></embed></object></div>
 EOT;
-      } elseif (preg_match('`(?:https?|ftp)://vimeo.com\/(\d+)`', $Url, $Matches) && C('Garden.Format.Vimeo')) {
+      } elseif (preg_match('`(?:https?|ftp)://vimeo\.com\/(\d+)`', $Url, $Matches) && C('Garden.Format.Vimeo')) {
          $ID = $Matches[1];
          $Result = <<<EOT
 <div class="Video"><object width="$Width" height="$Height"><param name="allowfullscreen" value="true" /><param name="allowscriptaccess" value="always" /><param name="movie" value="http://vimeo.com/moogaloop.swf?clip_id=$ID&amp;server=vimeo.com&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color=&amp;fullscreen=1" /><embed src="http://vimeo.com/moogaloop.swf?clip_id=$ID&amp;server=vimeo.com&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color=&amp;fullscreen=1" type="application/x-shockwave-flash" allowfullscreen="true" allowscriptaccess="always" width="$Width" height="$Height"></embed></object></div>
@@ -1044,7 +1061,7 @@ EOT;
          return self::To($Mixed, 'Text');
       else {
          $Charset = C('Garden.Charset', 'UTF-8');
-         $Result = htmlspecialchars(strip_tags(html_entity_decode($Mixed, ENT_QUOTES, $Charset)), ENT_QUOTES, $Charset);
+         $Result = htmlspecialchars(strip_tags(preg_replace('`<br\s?/?>`', "\n", html_entity_decode($Mixed, ENT_QUOTES, $Charset))), ENT_QUOTES, $Charset);
          if ($AddBreaks && C('Garden.Format.ReplaceNewlines', TRUE))
             $Result = nl2br(trim($Result));
          return $Result;

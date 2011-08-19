@@ -48,18 +48,26 @@ class CommentModel extends VanillaModel {
     * 
     * @param bool $FireEvent Kludge to fix VanillaCommentReplies plugin.
     */
-   public function CommentQuery($FireEvent = TRUE) {
+   public function CommentQuery($FireEvent = TRUE, $Join = TRUE) {
       $this->SQL->Select('c.*')
-         ->Select('iu.Name', '', 'InsertName')
-         ->Select('iu.Photo', '', 'InsertPhoto')
-         ->Select('iu.Email', '', 'InsertEmail')
-         ->Select('uu.Name', '', 'UpdateName')
-         ->Select('du.Name', '', 'DeleteName')
-         ->SelectCase('c.DeleteUserID', array('null' => '0', '' => '1'), 'Deleted')
-         ->From('Comment c')
-         ->Join('User iu', 'c.InsertUserID = iu.UserID', 'left')
-         ->Join('User uu', 'c.UpdateUserID = uu.UserID', 'left')
-         ->Join('User du', 'c.DeleteUserID = du.UserID', 'left');
+//         ->Select('du.Name', '', 'DeleteName')
+//         ->SelectCase('c.DeleteUserID', array('null' => '0', '' => '1'), 'Deleted')
+//         ->Join('User du', 'c.DeleteUserID = du.UserID', 'left');
+         ->From('Comment c');
+      
+      if ($Join) {
+         $this->SQL
+            ->Select('iu.Name', '', 'InsertName')
+            ->Select('iu.Photo', '', 'InsertPhoto')
+            ->Select('iu.Email', '', 'InsertEmail')
+            ->Join('User iu', 'c.InsertUserID = iu.UserID', 'left')
+         
+            ->Select('uu.Name', '', 'UpdateName')
+            ->Select('uu.Photo', '', 'UpdatePhoto')
+            ->Select('uu.Email', '', 'UpdateEmail')
+            ->Join('User uu', 'c.UpdateUserID = uu.UserID', 'left');
+      }
+      
       if($FireEvent)
          $this->FireEvent('AfterCommentQuery');
    }
@@ -76,7 +84,7 @@ class CommentModel extends VanillaModel {
     * @return object SQL results.
     */
    public function Get($DiscussionID, $Limit, $Offset = 0) {
-      $this->CommentQuery();
+      $this->CommentQuery(TRUE, FALSE);
       $this->EventArguments['DiscussionID'] =& $DiscussionID;
       $this->EventArguments['Limit'] =& $Limit;
       $this->EventArguments['Offset'] =& $Offset;
@@ -88,6 +96,9 @@ class CommentModel extends VanillaModel {
       $this->OrderBy($this->SQL);
 
       $Result = $this->SQL->Get();
+      
+      Gdn::UserModel()->JoinUsers($Result, array('InsertUserID', 'UpdateUserID'));
+      
       $this->EventArguments['Comments'] =& $Result;
       $this->FireEvent('AfterGet');
       
@@ -110,13 +121,13 @@ class CommentModel extends VanillaModel {
       $Perms = DiscussionModel::CategoryPermissions();
       
       // Build main query
-      $this->CommentQuery();
+      $this->CommentQuery(TRUE, FALSE);
       $this->FireEvent('BeforeGet');
       $this->SQL
 			->Select('d.Name', '', 'DiscussionName')
 			->Join('Discussion d', 'c.DiscussionID = d.DiscussionID')
          ->Where('c.InsertUserID', $UserID)
-			->OrderBy('c.DateInserted', 'desc')
+			->OrderBy('c.CommentID', 'desc')
          ->Limit($Limit, $Offset);
       
       // Verify permissions (restricting by category if necessary)
@@ -126,9 +137,13 @@ class CommentModel extends VanillaModel {
             ->WhereIn('d.CategoryID', $Perms);
       }
       
-      $this->OrderBy($this->SQL);
+      //$this->OrderBy($this->SQL);
 
-      return $this->SQL->Get();
+      $Data = $this->SQL->Get();
+      Gdn::UserModel()->JoinUsers($Data, array('InsertUserID', 'UpdateUserID'));
+      
+      return $Data;
+      
    }
   
    /** 
@@ -594,26 +609,26 @@ class CommentModel extends VanillaModel {
       // the number of discussions created by the user that s/he has
       // unread messages in) if this comment was not added by the
       // discussion author.
-      $Data = $this->SQL
-         ->Select('d.InsertUserID')
-         ->Select('d.DiscussionID', 'count', 'CountDiscussions')
-         ->From('Discussion d')
-         ->Join('Comment c', 'd.DiscussionID = c.DiscussionID')
-         ->Join('UserDiscussion w', 'd.DiscussionID = w.DiscussionID and w.UserID = d.InsertUserID')
-         ->Where('w.CountComments >', 0)
-         ->Where('c.InsertUserID', $Session->UserID)
-         ->Where('c.InsertUserID <>', 'd.InsertUserID', TRUE, FALSE)
-         ->GroupBy('d.InsertUserID')
-         ->Get();
-
-      if ($Data->NumRows() > 0) {
-         $UserData = $Data->FirstRow();
-         $this->SQL
-            ->Update('User')
-            ->Set('CountUnreadDiscussions', $UserData->CountDiscussions)
-            ->Where('UserID', $UserData->InsertUserID)
-            ->Put();
-      }
+//      $Data = $this->SQL
+//         ->Select('d.InsertUserID')
+//         ->Select('d.DiscussionID', 'count', 'CountDiscussions')
+//         ->From('Discussion d')
+//         ->Join('Comment c', 'd.DiscussionID = c.DiscussionID')
+//         ->Join('UserDiscussion w', 'd.DiscussionID = w.DiscussionID and w.UserID = d.InsertUserID')
+//         ->Where('w.CountComments >', 0)
+//         ->Where('c.InsertUserID', $Session->UserID)
+//         ->Where('c.InsertUserID <>', 'd.InsertUserID', TRUE, FALSE)
+//         ->GroupBy('d.InsertUserID')
+//         ->Get();
+//
+//      if ($Data->NumRows() > 0) {
+//         $UserData = $Data->FirstRow();
+//         $this->SQL
+//            ->Update('User')
+//            ->Set('CountUnreadDiscussions', $UserData->CountDiscussions)
+//            ->Where('UserID', $UserData->InsertUserID)
+//            ->Put();
+//      }
 
       $this->UpdateUser($Session->UserID, $IncUser && $Insert);
 
@@ -631,13 +646,13 @@ class CommentModel extends VanillaModel {
 					->Get()
 					->FirstRow()
 					->CountComments;
-				
-				$this->SQL
-					->Update('Category')
-					->Set('LastCommentID', $Discussion->LastCommentID)
-					->Set('CountComments', $CountComments)
-					->Where('CategoryID', $Discussion->CategoryID)
-					->Put();
+            
+            $CategoryModel = new CategoryModel();
+            
+            $CategoryModel->SetField($Discussion->CategoryID,
+               array('LastDiscussionID' => $Discussion->DiscussionID,
+                  'LastCommentID' => $Discussion->LastCommentID,
+                  'CountComments' => $CountComments));
 			}
 			
 			// Prepare the notification queue.
@@ -699,11 +714,13 @@ class CommentModel extends VanillaModel {
          if ($Discussion !== FALSE && !in_array($Session->UserID, $NotifiedUsers)) {
             $ActivityID = $this->RecordActivity($ActivityModel, $Discussion, $Session->UserID, $CommentID, FALSE);
 				$ActivityModel->QueueNotification($ActivityID, $Story);
+            $NotifiedUsers[] = $Session->UserID;
 			}
 
          // Throw an event for users to add their own events.
          $this->EventArguments['Comment'] = $Fields;
          $this->EventArguments['Discussion'] = $Discussion;
+         $this->EventArguments['NotifiedUsers'] = $NotifiedUsers;
          $this->EventArguments['ActivityModel'] = $ActivityModel;
          $this->FireEvent('BeforeNotification');
 				
@@ -733,16 +750,19 @@ class CommentModel extends VanillaModel {
       $UserModel = Gdn::UserModel();
       $UserMayView = $UserModel->GetCategoryViewPermission($Discussion->InsertUserID, $Discussion->CategoryID);
       
-      if ($Discussion->InsertUserID != $ActivityUserID && $UserMayView)
-			$ActivityModel->Add(
+      if ($Discussion->InsertUserID != $ActivityUserID && ($UserMayView || $SendEmail == 'Force')) {
+			$ActivityID = $ActivityModel->Add(
 				$ActivityUserID,
 				'DiscussionComment',
-				Anchor(Gdn_Format::Text($Discussion->Name), 'discussion/comment/'.$CommentID.'/#Comment_'.$CommentID),
+				Anchor(Gdn_Format::Text($Discussion->Name), "discussion/comment/$CommentID/#Comment_$CommentID"),
 				$Discussion->InsertUserID,
 				'',
 				'discussion/comment/'.$CommentID.'/#Comment_'.$CommentID,
 				$SendEmail
 			);
+         return $ActivityID;
+      }
+      
 	}
    
    /**
@@ -877,7 +897,7 @@ class CommentModel extends VanillaModel {
 					->Select('c.CommentID, c.InsertUserID, c.DateInserted')
 					->From('Comment c')
 					->Where('c.DiscussionID', $Data['DiscussionID'])
-					->OrderBy('c.DateInserted', 'desc')
+					->OrderBy('c.CommentID', 'desc')
 					->Limit(1, 1)
 					->Get()->FirstRow(DATASET_TYPE_ARRAY);
             
