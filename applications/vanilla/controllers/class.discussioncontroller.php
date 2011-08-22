@@ -38,6 +38,14 @@ class DiscussionController extends VanillaController {
     */
    public $CategoryID;
    
+   public function __get($Name) {
+      switch ($Name) {
+         case 'CommentData':
+            Deprecated('DiscussionController->CommentData', "DiscussionController->Data('Comments')");
+            return $this->Data('Comments');
+      }
+   }
+   
    /**
     * Default single discussion display.
     * 
@@ -120,9 +128,8 @@ class DiscussionController extends VanillaController {
       // Set the canonical url to have the proper page title.
       $this->CanonicalUrl(Url(ConcatSep('/', 'discussion/'.$this->Discussion->DiscussionID.'/'. Gdn_Format::Url($this->Discussion->Name), PageNumber($this->Offset, $Limit, TRUE)), TRUE));
 
-      // Load the comments
-      $this->SetData('CommentData', $this->CommentModel->Get($DiscussionID, $Limit, $this->Offset), TRUE);
-      $this->SetData('Comments', $this->CommentData);
+      // Load the comments.
+      $this->SetData('Comments', $this->CommentModel->Get($DiscussionID, $Limit, $this->Offset));
 
       // Make sure to set the user's discussion watch records
       $this->CommentModel->SetWatch($this->Discussion, $Limit, $this->Offset, $this->Discussion->CountComments);
