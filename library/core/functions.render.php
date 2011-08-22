@@ -295,7 +295,7 @@ if (!function_exists('UserAnchor')) {
          $Name = htmlspecialchars($Name);
       
       if (GetValue('Photo', $Options)) {
-         $Name = UserPhoto($User, array('Link' => FALSE, 'ImageClass' => 'ProfilePhotoInline')).$Name;
+         $Name = UserPhoto($User, array('Link' => FALSE, 'ImageClass' => GetValue('PhotoClass', $Options, 'ProfilePhotoInline'))).$Name;
       }
 
       if ($CssClass != '')
@@ -366,6 +366,16 @@ if (!function_exists('UserPhoto')) {
       } else {
          return '';
       }
+   }
+}
+
+/**
+ * Takes a user object, and writes out an anchor of the user's icon to the user's profile
+ *  along with some extended information about the user.
+ */
+if (!function_exists('UserPhotoExt')) {
+   function UserPhotoExt($User, $Options = array()) {
+      return UserPhoto($User, $Options);
    }
 }
 
