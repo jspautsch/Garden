@@ -537,7 +537,11 @@ class Gdn_Controller extends Gdn_Pluggable {
       
       switch ($Default) {
          case DEFAULT_ARRAY:
-            if (!is_array($Result))
+            if (is_a($Result, 'Gdn_DataSet'))
+               $Result = $Result->ResultArray();
+            elseif (is_object($Result))
+               $Result = (array)$Result;
+            elseif (!is_array($Result))
                $Result = array();
             break;
          case DEFAULT_DATASET:
