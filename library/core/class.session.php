@@ -160,7 +160,6 @@ class Gdn_Session extends Gdn_Pluggable {
       if ($SessionID) {
          // Grab the session from the database.
          $Session = Gdn::SQL()->GetWhere('Session', array('SessionID' => $SessionID))->FirstRow(DATASET_TYPE_ARRAY);
-            }
 
          if ($Session) {
             $this->SessionID($SessionID);
