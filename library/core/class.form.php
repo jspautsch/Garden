@@ -641,9 +641,10 @@ class Gdn_Form extends Gdn_Pluggable {
     *
     * @param string $FieldName The name of the field that is being displayed/posted with this input. It
     *    should related directly to a field name in $this->_DataArray.
-    * @param array $Attributes An associative array of attributes for the input. ie. onclick, class,
-    *    etc. A special attribute for this field is YearRange, specified in yyyy-yyyy format. 
-    *    The default value for YearRange is 1900-2008 (aka current year).
+    * @param array $Attributes An associative array of attributes for the input, e.g. onclick, class.
+    *    Special attributes: 
+    *       YearRange, specified in yyyy-yyyy format. Default is 1900 to current year.
+    *       Fields, array of month, day, year. Those are only valid values. Order matters.
     * @return string
     */
    public function Date($FieldName, $Attributes = FALSE) {
@@ -690,23 +691,35 @@ class Gdn_Form extends Gdn_Pluggable {
       
       $SubmittedTimestamp = ($this->GetValue($FieldName) > 0) ? strtotime($this->GetValue($FieldName)) : FALSE;
       
-      // Month
-      $Attributes['class'] = trim($CssClass . ' Month');
-      if ($SubmittedTimestamp)
-         $Attributes['Value'] = date('n', $SubmittedTimestamp);
-      $Return = $this->DropDown($FieldName . '_Month', $Months, $Attributes);
-      
-      // Day
-      $Attributes['class'] = trim($CssClass . ' Day');
-      if ($SubmittedTimestamp)
-         $Attributes['Value'] = date('j', $SubmittedTimestamp);
-      $Return .= $this->DropDown($FieldName . '_Day', $Days, $Attributes);
-      
-      // Year
-      $Attributes['class'] = trim($CssClass . ' Year');
-      if ($SubmittedTimestamp)
-         $Attributes['Value'] = date('Y', $SubmittedTimestamp);
-      $Return .= $this->DropDown($FieldName . '_Year', $Years, $Attributes);
+      // Allow us to specify which fields to show & order
+      $Fields = ArrayValueI('fields', $Attributes, array('month', 'day', 'year'));
+      if (is_array($Fields)) {
+         foreach ($Fields as $Field) {
+            switch ($Field) {
+               case 'month':
+                  // Month select
+                  $Attributes['class'] = trim($CssClass . ' Month');
+                  if ($SubmittedTimestamp)
+                     $Attributes['Value'] = date('n', $SubmittedTimestamp);
+                  $Return = $this->DropDown($FieldName . '_Month', $Months, $Attributes);
+                  break;
+               case 'day':
+                  // Day select
+                  $Attributes['class'] = trim($CssClass . ' Day');
+                  if ($SubmittedTimestamp)
+                     $Attributes['Value'] = date('j', $SubmittedTimestamp);
+                  $Return .= $this->DropDown($FieldName . '_Day', $Days, $Attributes);
+                  break;
+               case 'year':
+                  // Year select
+                  $Attributes['class'] = trim($CssClass . ' Year');
+                  if ($SubmittedTimestamp)
+                     $Attributes['Value'] = date('Y', $SubmittedTimestamp);
+                  $Return .= $this->DropDown($FieldName . '_Year', $Years, $Attributes);
+                  break;
+            }
+         }
+      }
       
       $Return .= '<input type="hidden" name="DateFields[]" value="' . $FieldName . '" />';
           
@@ -736,7 +749,9 @@ class Gdn_Form extends Gdn_Pluggable {
     *               $DataSet that contains the
     *               option text.
     *   Value       A string or array of strings.  $this->_DataArray->$FieldName
-    *   IncludeNull Include a blank row?           FALSE
+    *   IncludeNull TRUE to include a blank row    FALSE
+    *               String to create disabled 
+    *               first option.
     *   InlineErrors  Show inline error message?   TRUE
     *               Allows disabling per-dropdown
     *               for multi-fields like Date()
@@ -769,8 +784,11 @@ class Gdn_Form extends Gdn_Pluggable {
       $HasValue = ($Value !== array(FALSE) && $Value !== array('')) ? TRUE : FALSE;
       
       // Start with null option?
-      $IncludeNull = ArrayValueI('IncludeNull', $Attributes);
-      if ($IncludeNull === TRUE) $Return .= "<option value=\"\"></option>\n";
+      $IncludeNull = ArrayValueI('IncludeNull', $Attributes, FALSE);
+      if ($IncludeNull === TRUE) 
+         $Return .= "<option value=\"\"></option>\n";
+      elseif ($IncludeNull)
+         $Return .= "<option value=\"\">$IncludeNull</option>\n";
 
       if (is_object($DataSet)) {
          $FieldsExist = FALSE;
@@ -1852,6 +1870,7 @@ class Gdn_Form extends Gdn_Pluggable {
          'valuefield',
          'includenull',
          'yearrange',
+         'fields',
          'inlineerrors');
       $Return = '';
       
