@@ -856,6 +856,9 @@ function _FormatStringCallback($Match, $SetArgs = FALSE) {
                case 'long':
                   $Result = Gdn_Format::Date($Value, '%e %B %Y');
                   break;
+               case 'html':
+                  $Result = Gdn_Format::Date($Value, 'html');
+                  break;
                default:
                   $Result = Gdn_Format::Date($Value);
                   break;
