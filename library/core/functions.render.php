@@ -157,7 +157,7 @@ if (!function_exists('Meta')) {
       
       switch (strtolower($Format[0])) {
          case 'bignumber':
-            $Item = Gdn_Format::BigNumber($Value);
+            $Item = Gdn_Format::BigNumber($Value, 'html');
             $HasLabel = TRUE;
             break;
          case 'callback':
@@ -165,6 +165,10 @@ if (!function_exists('Meta')) {
             break;
          case 'date':
             $Item = Gdn_Format::Date($Value, 'html');
+            $HasLabel = TRUE;
+            break;
+         case 'format':
+            $Item = FormatString($Format[1], $Data);
             $HasLabel = TRUE;
             break;
          case 'plural':
@@ -219,22 +223,22 @@ if (!function_exists('Meta')) {
       else
          $Result .= $Item;
       
-      return Wrap($Result, 'span', array('class' => 'Meta'));
+      return Wrap($Result, 'span', array('class' => GetValue('CssClass', $Options, 'Meta')));
    }
 }
 
 if (!function_exists('MetaList')) {
-   function MetaList($Data, $MetaFormat = NULL) {
+   function MetaList($Data, $MetaFormat = NULL, $Options = array()) {
       if (!$MetaFormat)
          $MetaFormat = Gdn::Controller()->Data('_MetaFormat');
       
       $Result = array();
-      foreach ($MetaFormat as $Name => $Options) {
-         $Meta = Meta($Data, $Name, $Options);
+      foreach ($MetaFormat as $Name => $Options2) {
+         $Meta = Meta($Data, $Name, $Options2);
          if ($Meta)
             $Result[] = $Meta;
       }
-      $Result = '<div class="MetaList">'.implode("\n", $Result).'</div>';
+      $Result = '<div class="'.GetValue('CssClass', $Options, 'MetaList').'">'.implode("\n", $Result).'</div>';
       return $Result;
    }
 }
