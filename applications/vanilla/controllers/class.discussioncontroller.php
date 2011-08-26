@@ -240,6 +240,26 @@ class DiscussionController extends VanillaController {
       $this->AddDefinition('ImageResized', T('This image has been resized to fit in the page. Click to enlarge.'));
       $this->Menu->HighlightRoute('/discussions');
       Gdn_Theme::SetSection('Discussion');
+      
+      $MetaFormat = array(
+          'Insert' => array('Format' => 'User', 'Label' => 'By', 'CssClass' => 'Meta Meta-Author'),
+          'DateInserted' => array('Format' => array('format', '<a href="{Url,url}">{DateInserted,date,html}</a>'), 'Label' => FALSE),
+          'Source' => array('Label' => 'via', 'CssClass' => 'Meta PushLeft')
+      );
+      $this->SetData('_DiscussionHeaderMetaFormat', $MetaFormat);
+      
+      $MetaFormat = array(
+          'Announce' => array('Format' => 'Tag', 'Label' => 'Announcement'),
+          'Closed' => array('Format' => 'Tag')
+          // 'CategoryID' => 'Category'
+      );
+      $this->SetData('_DiscussionFooterMetaFormat', $MetaFormat);
+      $MetaFormat = array(
+          'DateInserted' => array('Format' => array('format', '<a href="{Url,url}">{DateInserted,date,html}</a>'), 'Label' => FALSE),
+          'Source' => array('Label' => 'via', 'CssClass' => 'Meta PushLeft'),
+          'InsertIPAddress' => array('Label' => FALSE)
+      );
+      $this->SetData('_CommentMetaFormat', $MetaFormat);
    }
 
    /**
