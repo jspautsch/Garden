@@ -9,16 +9,19 @@ Contact Vanilla Forums Inc. at support [at] vanillaforums [dot] com
 */
 
 /**
- * Dispatcher handles all requests.
+ * Dispatcher handles all requests
+ * 
+ * This class is the main point of entry into the framework. It analyzes the 
+ * Request object and, using reflection, deduces the correct application, controller
+ * and method to invoke.
  *
- * @author Mark O'Sullivan
- * @copyright 2003 Mark O'Sullivan
- * @license http://www.opensource.org/licenses/gpl-2.0.php GPL
+ * @author Mark O'Sullivan <mark@vanillaforums.com>
+ * @author Tim Gunter <tim@vanillaforums.com>
+ * @copyright 2003 Vanilla Forums, Inc
+ * @license http://www.opensource.org/licenses/gpl-2.0.php GPLv2
  * @package Garden
- * @version @@GARDEN-VERSION@@
- * @namespace Garden.Core
+ * @since 2.0
  */
-
 class Gdn_Dispatcher extends Gdn_Pluggable {
 
    /**
@@ -288,6 +291,8 @@ class Gdn_Dispatcher extends Gdn_Pluggable {
          // Pass in the querystring values
          $Controller->ApplicationFolder = $this->_ApplicationFolder;
          $Controller->Application = $this->EnabledApplication();
+         if (!$Controller->Application)
+            $Controller->Application = 'Dashboard';
          $Controller->ControllerFolder = $this->_ControllerFolder;
          $Controller->RequestMethod = $this->_ControllerMethod;
          $Controller->RequestArgs = $this->_ControllerMethodArgs;
@@ -501,7 +506,7 @@ class Gdn_Dispatcher extends Gdn_Pluggable {
    
    protected function FindController($ControllerKey, $Parts) {
       
-      $Application = GetValue($ControllerKey-1, $Parts, NULL);
+      $Application = GetValue($ControllerKey - 1, $Parts, NULL);
       $Controller = GetValue($ControllerKey, $Parts, NULL);
       $Controller = ucfirst(strtolower($Controller));
 
@@ -527,29 +532,44 @@ class Gdn_Dispatcher extends Gdn_Pluggable {
       
       $ControllerName = $Controller.'Controller';
       $ControllerPath = Gdn_Autoloader::Lookup($ControllerName, array('Quiet' => TRUE));
+      if ($ControllerPath == FALSE) {
+         // Try finding the controller through a plugin.
+         $ControllerPath = Gdn_AutoLoader::Lookup($ControllerName, array('Quiet' => TRUE, 'MapType' => 'library')); 
+      }
       
       if ($ControllerPath !== FALSE) {
          
          // This was a guess search with no specified application. Look up
          // the application folder from the controller path.
+         $Context = Gdn_Autoloader::CONTEXT_APPLICATION;
          if (is_null($Application)) {
             $InterimPath = explode('/controllers/', $ControllerPath);
             array_pop($InterimPath); // Get rid of the end. Useless;
             $InterimPath = explode('/', trim(array_pop($InterimPath)));
             $Application = array_pop($InterimPath);
-            if (!in_array($Application, $this->EnabledApplicationFolders()))
-               return FALSE;
+            $Lib = array_pop($InterimPath);
+            if ($Lib == 'plugins') {
+               if (!in_array($Application, Gdn::PluginManager()->EnabledPluginFolders()))
+                  return FALSE;
+               
+               $Context = Gdn_Autoloader::CONTEXT_PLUGIN;
+               $this->_ApplicationFolder = $Lib.'/'.$Application;
+            } else {
+               if (!in_array($Application, $this->EnabledApplicationFolders()))
+                  return FALSE;
+            }
          }
       
          Gdn_Autoloader::Priority(
-            Gdn_Autoloader::CONTEXT_APPLICATION, 
+            $Context, 
             $Application,
             Gdn_Autoloader::MAP_CONTROLLER, 
             Gdn_Autoloader::PRIORITY_TYPE_PREFER,
             Gdn_Autoloader::PRIORITY_PERSIST);
       
          $this->_ControllerName = $Controller;
-         $this->_ApplicationFolder = (is_null($Application) ? '' : $Application);
+         if (!$this->_ApplicationFolder)
+            $this->_ApplicationFolder = (is_null($Application) ? '' : $Application);
          $this->_ControllerFolder = '';
          
          $Length = sizeof($Parts);

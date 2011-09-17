@@ -904,7 +904,7 @@ class UserModel extends Gdn_Model {
             if ($SaveRoles) {
                // If no RoleIDs were provided, use the system defaults
                if (!is_array($RoleIDs))
-                  $RoleIDs = Gdn::Config('Garden.Registration.DefaultRoles');
+                  $RoleIDs = C('Garden.Registration.DefaultRoles');
    
                $this->SaveRoles($UserID, $RoleIDs, $RecordRoleChange);
             }
@@ -1188,7 +1188,7 @@ class UserModel extends Gdn_Model {
     * To be used for invitation registration
     */
    public function InsertForInvite($FormPostValues, $Options = array()) {
-      $RoleIDs = Gdn::Config('Garden.Registration.DefaultRoles');
+      $RoleIDs = C('Garden.Registration.DefaultRoles');
       if (!is_array($RoleIDs) || count($RoleIDs) == 0)
          throw new Exception(T('The default role has not been configured.'), 400);
 
@@ -1216,7 +1216,7 @@ class UserModel extends Gdn_Model {
          ->Join('User s', 'i.InsertUserID = s.UserID', 'left')
          ->Where('Code', $InvitationCode)
          ->Where('AcceptedUserID is null'); // Do not let them use the same invitation code twice!
-      $InviteExpiration = Gdn::Config('Garden.Registration.InviteExpiration');
+      $InviteExpiration = C('Garden.Registration.InviteExpiration');
       if ($InviteExpiration != 'FALSE' && $InviteExpiration !== FALSE)
          $this->SQL->Where('i.DateInserted >=', Gdn_Format::ToDateTime(strtotime($InviteExpiration)));
 
@@ -1335,7 +1335,7 @@ class UserModel extends Gdn_Model {
     * To be used for basic registration, and captcha registration
     */
    public function InsertForBasic($FormPostValues, $CheckCaptcha = TRUE, $Options = array()) {
-      $RoleIDs = Gdn::Config('Garden.Registration.DefaultRoles');
+      $RoleIDs = C('Garden.Registration.DefaultRoles');
       if (!is_array($RoleIDs) || count($RoleIDs) == 0)
          throw new Exception(T('The default role has not been configured.'), 400);
 
@@ -1371,7 +1371,7 @@ class UserModel extends Gdn_Model {
          $Fields = RemoveKeyFromArray($Fields, $this->PrimaryKey);
 
          // If in Captcha registration mode, check the captcha value
-         if ($CheckCaptcha && Gdn::Config('Garden.Registration.Method') == 'Captcha') {
+         if ($CheckCaptcha && C('Garden.Registration.Method') == 'Captcha') {
             $CaptchaPublicKey = ArrayValue('Garden.Registration.CaptchaPublicKey', $FormPostValues, '');
             $CaptchaValid = ValidateCaptcha($CaptchaPublicKey);
             if ($CaptchaValid !== TRUE) {
@@ -1714,7 +1714,7 @@ class UserModel extends Gdn_Model {
       ) return -1;
 
       // Get the Registration.InviteRoles settings:
-      $InviteRoles = Gdn::Config('Garden.Registration.InviteRoles', array());
+      $InviteRoles = C('Garden.Registration.InviteRoles', array());
       if (!is_array($InviteRoles) || count($InviteRoles) == 0)
          return 0;
 
@@ -2043,7 +2043,7 @@ class UserModel extends Gdn_Model {
          $this->SaveAttribute($User['UserID'], $Attributes);
       }
       
-      $AppTitle = Gdn::Config('Garden.Title');
+      $AppTitle = C('Garden.Title');
       $Email = new Gdn_Email();
       $Email->Subject(sprintf(T('[%s] Confirm Your Email Address'), $AppTitle));
       $Email->To($User['Email']);
@@ -2069,7 +2069,7 @@ class UserModel extends Gdn_Model {
       if (!ValidateEmail($User->Email))
          return;
 
-      $AppTitle = Gdn::Config('Garden.Title');
+      $AppTitle = C('Garden.Title');
       $Email = new Gdn_Email();
       $Email->Subject(sprintf(T('[%s] Welcome Aboard!'), $AppTitle));
       $Email->To($User->Email);
@@ -2113,7 +2113,8 @@ class UserModel extends Gdn_Model {
       $Session = Gdn::Session();
       $Sender = $this->GetID($Session->UserID);
       $User = $this->GetID($UserID);
-      $AppTitle = Gdn::Config('Garden.Title');
+      $AppTitle = Cg('Garden.Title');
+
       $Email = new Gdn_Email();
       $Email->Subject(sprintf(T('[%s] Password Reset'), $AppTitle));
       $Email->To($User->Email);

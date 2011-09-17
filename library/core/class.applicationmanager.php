@@ -11,14 +11,13 @@ Contact Vanilla Forums Inc. at support [at] vanillaforums [dot] com
 /**
  * Manages available applications, enabling and disabling them.
  *
- * @author Mark O'Sullivan
- * @copyright 2003 Mark O'Sullivan
+ * @author Mark O'Sullivan <mark@vanillaforums.com>
+ * @author Tim Gunter <tim@vanillaforums.com>
+ * @copyright 2003 Vanilla Forums, Inc
  * @license http://www.opensource.org/licenses/gpl-2.0.php GPLv2
  * @package Garden
- * @version @@GARDEN-VERSION@@
- * @namespace Garden.Core
+ * @since 2.0
  */
-
 class Gdn_ApplicationManager {
 
    /**
@@ -90,11 +89,11 @@ class Gdn_ApplicationManager {
     */
    public function EnabledApplications() {
       if (!is_array($this->_EnabledApplications)) {
-         $EnabledApplications = Gdn::Config('EnabledApplications', array('Dashboard' => 'dashboard'));
+         $EnabledApplications = C('EnabledApplications', array('Dashboard' => 'dashboard'));
          // Add some information about the applications to the array.
          foreach($EnabledApplications as $Name => $Folder) {
             $EnabledApplications[$Name] = array('Folder' => $Folder);
-            //$EnabledApplications[$Name]['Version'] = Gdn::Config($Name.'.Version', '');
+            //$EnabledApplications[$Name]['Version'] = C($Name.'.Version', '');
             $EnabledApplications[$Name]['Version'] = '';
             $EnabledApplications[$Name]['Index'] = $Name;
             // Get the application version from it's about file.
@@ -146,7 +145,7 @@ class Gdn_ApplicationManager {
     * @todo Undocumented method.
     */
    public function EnabledApplicationFolders() {
-      $EnabledApplications = Gdn::Config('EnabledApplications', array());
+      $EnabledApplications = C('EnabledApplications', array());
       $EnabledApplications['Dashboard'] = 'dashboard';
       return array_values($EnabledApplications);
    }

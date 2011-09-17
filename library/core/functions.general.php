@@ -872,6 +872,9 @@ function _FormatStringCallback($Match, $SetArgs = FALSE) {
                case 'long':
                   $Result = Gdn_Format::Date($Value, '%e %B %Y');
                   break;
+               case 'html':
+                  $Result = Gdn_Format::Date($Value, 'html');
+                  break;
                default:
                   $Result = Gdn_Format::Date($Value);
                   break;
@@ -2041,13 +2044,6 @@ if (!function_exists('SaveToConfig')) {
     * @return bool: Whether or not the save was successful. NULL if no changes were necessary.
     */
    function SaveToConfig($Name, $Value = '', $Options = array()) {
-      // Don't save the value if it hasn't changed.
-      /*
-      Tim: The world ain't ready for you yet, son
-      if (is_string($Name) && C($Name) == $Value)
-         return NULL;
-      */
-      
       $Save = $Options === FALSE ? FALSE : GetValue('Save', $Options, TRUE);
       $RemoveEmpty = GetValue('RemoveEmpty', $Options);
 
@@ -2077,7 +2073,7 @@ if (!function_exists('SliceString')) {
    function SliceString($String, $Length, $Suffix = '…') {
       if (function_exists('mb_strimwidth')) {
       	static $Charset;
-      	if(is_null($Charset)) $Charset = Gdn::Config('Garden.Charset', 'utf-8');
+      	if(is_null($Charset)) $Charset = C('Garden.Charset', 'utf-8');
       	return mb_strimwidth($String, 0, $Length, $Suffix, $Charset);
       } else {
          $Trim = substr($String, 0, $Length);

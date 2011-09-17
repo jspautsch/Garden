@@ -38,6 +38,14 @@ class DiscussionController extends VanillaController {
     */
    public $CategoryID;
    
+   public function __get($Name) {
+      switch ($Name) {
+         case 'CommentData':
+            Deprecated('DiscussionController->CommentData', "DiscussionController->Data('Comments')");
+            return $this->Data('Comments');
+      }
+   }
+   
    /**
     * Default single discussion display.
     * 
@@ -121,9 +129,8 @@ class DiscussionController extends VanillaController {
       // Set the canonical url to have the proper page title.
       $this->CanonicalUrl(Url(ConcatSep('/', 'discussion/'.$this->Discussion->DiscussionID.'/'. Gdn_Format::Url($this->Discussion->Name), PageNumber($this->Offset, $Limit, TRUE)), TRUE));
 
-      // Load the comments
-      $this->SetData('CommentData', $this->CommentModel->Get($DiscussionID, $Limit, $this->Offset), TRUE);
-      $this->SetData('Comments', $this->CommentData);
+      // Load the comments.
+      $this->SetData('Comments', $this->CommentModel->Get($DiscussionID, $Limit, $this->Offset));
 
       // Make sure to set the user's discussion watch records
       $this->CommentModel->SetWatch($this->Discussion, $Limit, $this->Offset, $this->Discussion->CountComments);
@@ -232,6 +239,27 @@ class DiscussionController extends VanillaController {
       parent::Initialize();
       $this->AddDefinition('ImageResized', T('This image has been resized to fit in the page. Click to enlarge.'));
       $this->Menu->HighlightRoute('/discussions');
+      Gdn_Theme::SetSection('Discussion');
+      
+      $MetaFormat = array(
+          'Insert' => array('Format' => 'User', 'Label' => 'By', 'CssClass' => 'Meta Meta-Author'),
+          'DateInserted' => array('Format' => array('format', '<a href="{Url,url}">{DateInserted,date,html}</a>'), 'Label' => FALSE),
+          'Source' => array('Label' => 'via', 'CssClass' => 'Meta PushLeft')
+      );
+      $this->SetData('_DiscussionHeaderMetaFormat', $MetaFormat);
+      
+      $MetaFormat = array(
+          'Announce' => array('Format' => 'Tag', 'Label' => 'Announcement'),
+          'Closed' => array('Format' => 'Tag')
+          // 'CategoryID' => 'Category'
+      );
+      $this->SetData('_DiscussionFooterMetaFormat', $MetaFormat);
+      $MetaFormat = array(
+          'DateInserted' => array('Format' => array('format', '<a href="{Url,url}">{DateInserted,date,html}</a>'), 'Label' => FALSE),
+          'Source' => array('Label' => 'via', 'CssClass' => 'Meta PushLeft'),
+          'InsertIPAddress' => array('Label' => FALSE)
+      );
+      $this->SetData('_CommentMetaFormat', $MetaFormat);
    }
 
    /**
@@ -252,7 +280,7 @@ class DiscussionController extends VanillaController {
       
       // Figure out how many comments are before this one
       $Offset = $this->CommentModel->GetOffset($Comment);
-      $Limit = Gdn::Config('Vanilla.Comments.PerPage', 50);
+      $Limit = C('Vanilla.Comments.PerPage', 50);
       
       // (((67 comments / 10 perpage) = 6.7) rounded down = 6) * 10 perpage = offset 60;
       //$Offset = floor($Offset / $Limit) * $Limit;

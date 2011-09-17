@@ -7,18 +7,15 @@ Garden is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License along with Garden.  If not, see <http://www.gnu.org/licenses/>.
 Contact Vanilla Forums Inc. at support [at] vanillaforums [dot] com
 */
-/**
- * Helps with the rendering of form controls that link directly to a data model.
- *
- * @author Mark O'Sullivan
- * @license http://www.opensource.org/licenses/gpl-2.0.php GPL
- * @package Garden
- */
 
 /**
  * Helps with the rendering of form controls that link directly to a data model.
  *
+ * @author Mark O'Sullivan <mark@vanillaforums.com>
+ * @copyright 2003 Vanilla Forums, Inc
+ * @license http://www.opensource.org/licenses/gpl-2.0.php GPLv2
  * @package Garden
+ * @since 2.0
  * @todo change formatting of tables in documentation
  */
 class Gdn_Form extends Gdn_Pluggable {
@@ -56,7 +53,7 @@ class Gdn_Form extends Gdn_Pluggable {
     *    If a model is assigned, the model name is used instead.
     * @access public
     */
-   public $InputPrefix = 'Form';
+   public $InputPrefix = '';
 
    /**
     * @var string Form submit method. Options are 'post' or 'get'.
@@ -1162,8 +1159,7 @@ class Gdn_Form extends Gdn_Pluggable {
          $Return .= $this->Hidden('TransientKey',
             array('value' => $Session->TransientKey()));
          // Also add a honeypot if Forms.HoneypotName has been defined
-         $HoneypotName = Gdn::Config(
-            'Garden.Forms.HoneypotName');
+         $HoneypotName = C('Garden.Forms.HoneypotName');
          if ($HoneypotName) $Return .= $this->Hidden($HoneypotName,
             array('Name' => $HoneypotName, 'style' => "display: none;"));
       }
@@ -1420,7 +1416,7 @@ class Gdn_Form extends Gdn_Pluggable {
       // forms sent with "get" method do not require authentication.
       //   return TRUE;
       //} else {
-      $KeyName = $this->InputPrefix . '/TransientKey';
+      $KeyName = ConcatSep('/', $this->InputPrefix, 'TransientKey');
       $PostBackKey = isset($_POST[$KeyName]) ? $_POST[$KeyName] : FALSE;
       $Session = Gdn::Session();
       // DEBUG:
@@ -1798,7 +1794,8 @@ class Gdn_Form extends Gdn_Pluggable {
     */
    public function SetModel($Model, $DataSet = FALSE) {
       $this->_Model = $Model;
-      $this->InputPrefix = $this->_Model->Name;
+      if ($this->InputPrefix && $this->InputPrefix != $this->_Model->Name)
+         $this->InputPrefix = $this->_Model->Name;
       if ($DataSet !== FALSE) $this->SetData($DataSet);
    }
    

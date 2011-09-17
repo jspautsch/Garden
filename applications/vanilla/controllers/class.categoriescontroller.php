@@ -7,12 +7,7 @@ Garden is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License along with Garden.  If not, see <http://www.gnu.org/licenses/>.
 Contact Vanilla Forums Inc. at support [at] vanillaforums [dot] com
 */
-/**
- * Categories Controller
- *
- * @package Vanilla
- */
- 
+
 /**
  * Handles displaying categories.
  *
@@ -72,6 +67,7 @@ class CategoriesController extends VanillaController {
          if ($CategoryIdentifier)
             throw NotFoundException();
       }
+      Gdn_Theme::SetSection('DiscussionList');
       $Category = (object)$Category;
 			
 		// Load the breadcrumbs.
@@ -184,6 +180,7 @@ class CategoriesController extends VanillaController {
 
       $this->CanonicalUrl(Url('/categories/all', TRUE));
       
+      Gdn_Theme::SetSection('CategoryList');
       // Set a definition of the user's current timezone from the db. jQuery
       // will pick this up, compare to the browser, and update the user's
       // timezone if necessary.

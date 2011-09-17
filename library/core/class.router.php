@@ -1,5 +1,14 @@
-<?php
+<?php if (!defined('APPLICATION')) exit();
 
+/**
+ * Handles rewriting requests internally
+ * 
+ * @author Tim Gunter <tim@vanillaforums.com>
+ * @copyright 2003 Vanilla Forums, Inc
+ * @license http://www.opensource.org/licenses/gpl-2.0.php GPLv2
+ * @package Garden
+ * @since 2.0
+ */
 class Gdn_Router extends Gdn_Pluggable {
 
    public $Routes;
@@ -9,11 +18,11 @@ class Gdn_Router extends Gdn_Pluggable {
    public function __construct() {
       parent::__construct();
       $this->RouteTypes = array(
-         'Internal'     => 'Internal',
-         'Temporary'    => 'Temporary (302)',
-         'Permanent'    => 'Permanent (301)',
-         'NotAuthorized' => 'Not Authorized (401)',
-         'NotFound'     => 'Not Found (404)'
+         'Internal'        => 'Internal',
+         'Temporary'       => 'Temporary (302)',
+         'Permanent'       => 'Permanent (301)',
+         'NotAuthorized'   => 'Not Authorized (401)',
+         'NotFound'        => 'Not Found (404)'
       );
       $this->ReservedRoutes = array('DefaultController', 'DefaultForumRoot', 'Default404', 'DefaultPermission', 'UpdateMode');
       $this->_LoadRoutes();
@@ -151,7 +160,7 @@ class Gdn_Router extends Gdn_Pluggable {
    }
    
    private function _LoadRoutes() {
-      $Routes = Gdn::Config('Routes', array());
+      $Routes = C('Routes', array());
       $this->EventArguments['Routes'] = &$Routes;
       $this->FireEvent("BeforeLoadRoutes");
       foreach ($Routes as $Key => $Destination) {

@@ -378,9 +378,9 @@ class ActivityModel extends Gdn_Model {
          if ($Preference) {
             $ActivityHeadline = Gdn_Format::Text(Gdn_Format::ActivityHeadline($Activity, $Activity->ActivityUserID, $Activity->RegardingUserID), FALSE);
             $Email = new Gdn_Email();
-            $Email->Subject(sprintf(T('[%1$s] %2$s'), Gdn::Config('Garden.Title'), $ActivityHeadline));
+            $Email->Subject(sprintf(T('[%1$s] %2$s'), C('Garden.Title'), $ActivityHeadline));
             $Email->To($User->Email, $User->Name);
-            //$Email->From(Gdn::Config('Garden.SupportEmail'), Gdn::Config('Garden.SupportName'));
+            //$Email->From(C('Garden.SupportEmail'), C('Garden.SupportName'));
             $Email->Message(
                sprintf(
                   $Story == '' ? T('EmailNotification') : T('EmailStoryNotification'),
@@ -497,9 +497,10 @@ class ActivityModel extends Gdn_Model {
          if ($Preference) {
             $ActivityHeadline = Gdn_Format::Text(Gdn_Format::ActivityHeadline($Activity, $Activity->ActivityUserID, $Activity->RegardingUserID), FALSE);
             $Email = new Gdn_Email();
-            $Email->Subject(sprintf(T('[%1$s] %2$s'), Gdn::Config('Garden.Title'), $ActivityHeadline));
-            $Email->To($User->Email, $User->Name);
-            //$Email->From(Gdn::Config('Garden.SupportEmail'), Gdn::Config('Garden.SupportName'));
+
+            $Email->Subject(sprintf(T('[%1$s] %2$s'), C('Garden.Title'), $ActivityHeadline));
+//            $Email->To($User->Email, $User->Name);
+            //$Email->From(C('Garden.SupportEmail'), C('Garden.SupportName'));
             $Email->Message(
                sprintf(
                   $Story == '' ? T('EmailNotification') : T('EmailStoryNotification'),

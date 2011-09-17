@@ -67,7 +67,7 @@ class TaggingPlugin extends Gdn_Plugin {
       }
       
       $Tag = StringEndsWith($Tag, '.rss', TRUE, TRUE);
-      list($Offset, $Limit) = OffsetLimit($Page, Gdn::Config('Vanilla.Discussions.PerPage', 30));
+      list($Offset, $Limit) = OffsetLimit($Page, C('Vanilla.Discussions.PerPage', 30));
    
       $Sender->SetData('Tag', $Tag, TRUE);
       $Sender->Title(T('Tagged with ').htmlspecialchars($Tag));
@@ -537,7 +537,6 @@ class TaggingPlugin extends Gdn_Plugin {
       
       $Sender->AddCSSFile('plugins/Tagging/design/tag.css');
       $DiscussionID = property_exists($Sender, 'DiscussionID') ? $Sender->DiscussionID : 0;
-      include_once(PATH_PLUGINS.'/Tagging/class.tagmodule.php');
       $TagModule = new TagModule($Sender);
       $TagModule->GetData($DiscussionID);
       $Sender->AddModule($TagModule);      

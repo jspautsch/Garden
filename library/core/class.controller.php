@@ -12,15 +12,12 @@ Contact Vanilla Forums Inc. at support [at] vanillaforums [dot] com
  * A base class that all controllers can inherit for common controller
  * properties and methods.
  *
- * @author Mark O'Sullivan
- * @copyright 2003 Mark O'Sullivan
- * @license http://www.opensource.org/licenses/gpl-2.0.php GPL
+ * @author Mark O'Sullivan <mark@vanillaforums.com>
+ * @copyright 2003 Vanilla Forums, Inc
+ * @license http://www.opensource.org/licenses/gpl-2.0.php GPLv2
  * @package Garden
- * @version @@GARDEN-VERSION@@
- * @namespace Garden.Core
- */
-
-/**
+ * @since 2.0
+ *
  * @method void Render() Render the controller's view.
  * @param string $View
  * @param string $ControllerName
@@ -336,7 +333,7 @@ class Gdn_Controller extends Gdn_Pluggable {
       $this->SelfUrl = '';
       $this->SyndicationMethod = SYNDICATION_NONE;
       $this->Theme = Theme();
-      $this->ThemeOptions = Gdn::Config('Garden.ThemeOptions', array());
+      $this->ThemeOptions = C('Garden.ThemeOptions', array());
       $this->View = '';
       $this->_CssFiles = array();
       $this->_JsFiles = array();
@@ -538,6 +535,24 @@ class Gdn_Controller extends Gdn_Pluggable {
     */
    public function Data($Path, $Default = '' ) {
       $Result = GetValueR($Path, $this->Data, $Default);
+      
+      switch ($Default) {
+         case DEFAULT_ARRAY:
+            if (is_a($Result, 'Gdn_DataSet'))
+               $Result = $Result->ResultArray();
+            elseif (is_object($Result))
+               $Result = (array)$Result;
+            elseif (!is_array($Result))
+               $Result = array();
+            break;
+         case DEFAULT_DATASET:
+            if (!is_a($Result, 'Gdn_DataSet'))
+               $Result = new Gdn_DataSet();
+            break;
+         default:
+            
+      }
+      
       return $Result;
    }
 
@@ -803,7 +818,7 @@ class Gdn_Controller extends Gdn_Pluggable {
          return $this->Assets[$AssetName];
       
       // Include the module sort
-      $Modules = Gdn::Config('Modules', array());
+      $Modules = C('Modules', array());
       if($this->ModuleSortContainer === FALSE)
          $ModuleSort = FALSE; // no sort wanted
       elseif(array_key_exists($this->ModuleSortContainer, $Modules) && array_key_exists($AssetName, $Modules[$this->ModuleSortContainer]))
@@ -912,7 +927,7 @@ class Gdn_Controller extends Gdn_Pluggable {
       }
       
       if (is_object($this->Menu))
-         $this->Menu->Sort = Gdn::Config('Garden.Menu.Sort');
+         $this->Menu->Sort = C('Garden.Menu.Sort');
    }
    
    public function JsFiles() {
@@ -1073,7 +1088,7 @@ class Gdn_Controller extends Gdn_Pluggable {
          $View = $this->FetchView($View, $ControllerName, $ApplicationFolder);
          // Add the view to the asset container if necessary
          if ($this->_DeliveryType != DELIVERY_TYPE_VIEW)
-            $this->AddAsset($AssetName, $View, 'Content');
+            $this->AddAsset($AssetName, $View, 'View');
       }
 
       // Redefine the view as the entire asset contents if necessary
@@ -1135,7 +1150,7 @@ class Gdn_Controller extends Gdn_Pluggable {
          } else if ($this->_DeliveryType == DELIVERY_TYPE_ALL) {
             // Add definitions to the page
             if ($this->SyndicationMethod === SYNDICATION_NONE)
-               $this->AddAsset('Foot', $this->DefinitionList());
+               $this->AddAsset('Foot', $this->DefinitionList(), 'Definitions');
 
             // Render
             $this->RenderMaster();

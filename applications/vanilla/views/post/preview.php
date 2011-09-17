@@ -4,5 +4,5 @@ $this->Comment->Body = Gdn_Format::To($this->Comment->Body, C('Garden.InputForma
 $this->FireEvent('AfterCommentPreviewFormat');
 ?>
 <div class="Preview">
-   <div class="Message"><?php echo $this->Comment->Body; ?></div>
+   <div class="Message"><?php echo Gdn_Format::To($this->Comment->Body, C('Garden.InputFormatter')); ?></div>
 </div>

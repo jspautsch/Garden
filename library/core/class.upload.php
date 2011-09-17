@@ -10,6 +10,12 @@ Contact Vanilla Forums Inc. at support [at] vanillaforums [dot] com
 
 /**
  * Handles uploading files.
+ * 
+ * @author Todd Burry <todd@vanillaforums.com>
+ * @copyright 2003 Vanilla Forums, Inc
+ * @license http://www.opensource.org/licenses/gpl-2.0.php GPLv2
+ * @package Garden
+ * @since 2.0
  */
 class Gdn_Upload extends Gdn_Pluggable {
    /// PROPERTIES ///
@@ -64,8 +70,8 @@ class Gdn_Upload extends Gdn_Pluggable {
 	}
 
 	public function Clear() {
-		$this->_MaxFileSize = self::UnformatFileSize(Gdn::Config('Garden.Upload.MaxFileSize', ''));
-		$this->_AllowedFileExtensions = Gdn::Config('Garden.Upload.AllowedFileExtensions', array());
+		$this->_MaxFileSize = self::UnformatFileSize(C('Garden.Upload.MaxFileSize', ''));
+		$this->_AllowedFileExtensions = C('Garden.Upload.AllowedFileExtensions', array());
 	}
 
    /**

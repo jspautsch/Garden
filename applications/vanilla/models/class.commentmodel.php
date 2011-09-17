@@ -285,7 +285,7 @@ class CommentModel extends VanillaModel {
 				}
          } else {
 				// Make sure the discussion isn't archived.
-				$ArchiveDate = Gdn::Config('Vanilla.Archive.Date');
+				$ArchiveDate = C('Vanilla.Archive.Date');
 				if(!$ArchiveDate || (Gdn_Format::ToTimestamp($Discussion->DateLastComment) > Gdn_Format::ToTimestamp($ArchiveDate))) {
 					// Insert watch data
 					$this->SQL->Insert(
@@ -517,7 +517,7 @@ class CommentModel extends VanillaModel {
       
       // Add & apply any extra validation rules:      
       $this->Validation->ApplyRule('Body', 'Required');
-      $MaxCommentLength = Gdn::Config('Vanilla.Comment.MaxLength');
+      $MaxCommentLength = C('Vanilla.Comment.MaxLength');
       if (is_numeric($MaxCommentLength) && $MaxCommentLength > 0) {
          $this->Validation->SetSchemaProperty('Body', 'Length', $MaxCommentLength);
          $this->Validation->ApplyRule('Body', 'Length');
@@ -552,7 +552,7 @@ class CommentModel extends VanillaModel {
             } else {
                // Make sure that the comments get formatted in the method defined by Garden.
                if (!GetValue('Format', $Fields))
-                  $Fields['Format'] = Gdn::Config('Garden.InputFormatter', '');
+                  $Fields['Format'] = C('Garden.InputFormatter', '');
 
                // Check for spam.
                $Spam = SpamModel::IsSpam('Comment', $Fields);

@@ -11,18 +11,11 @@ Contact Vanilla Forums Inc. at support [at] vanillaforums [dot] com
 /**
  * Base module object
  *
- * @author Mark O'Sullivan
- * @copyright 2009 Mark O'Sullivan
- * @license http://www.opensource.org/licenses/gpl-2.0.php GPL
+ * @author Mark O'Sullivan <mark@vanillaforums.com>
+ * @copyright 2003 Vanilla Forums, Inc
+ * @license http://www.opensource.org/licenses/gpl-2.0.php GPLv2
  * @package Garden
- * @version @@GARDEN-VERSION@@
- * @namespace Garden.Core
- */
-
-
-/**
- * Base module object
- * @package Garden
+ * @since 2.0
  */
 class Gdn_Module extends Gdn_Pluggable implements Gdn_IModule {
 
@@ -76,7 +69,7 @@ class Gdn_Module extends Gdn_Pluggable implements Gdn_IModule {
          $this->_ThemeFolder = $Sender->Theme;
       } else {
          $this->_ApplicationFolder = 'dashboard';
-         $this->_ThemeFolder = Gdn::Config('Garden.Theme');
+         $this->_ThemeFolder = C('Garden.Theme');
       }
       if ($ApplicationFolder !== FALSE)
          $this->_ApplicationFolder = $ApplicationFolder;

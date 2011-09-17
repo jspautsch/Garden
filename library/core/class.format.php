@@ -11,13 +11,12 @@ Contact Vanilla Forums Inc. at support [at] vanillaforums [dot] com
 /**
  * Utility class that helps to format strings, objects, and arrays.
  *
- *
- * @author Mark O'Sullivan
- * @copyright 2009 Mark O'Sullivan
- * @license http://www.opensource.org/licenses/gpl-2.0.php GPL
+ * @author Mark O'Sullivan <mark@vanillaforums.com>
+ * @author Todd Burry <todd@vanillaforums.com>
+ * @copyright 2003 Vanilla Forums, Inc
+ * @license http://www.opensource.org/licenses/gpl-2.0.php GPLv2
  * @package Garden
- * @version @@GARDEN-VERSION@@
- * @namespace Garden.Core
+ * @since 2.0
  */
 class Gdn_Format {
 
@@ -891,7 +890,7 @@ EOT;
          'normal'=>array( 640, 385),
          'big'  => array( 853, 505),
          'huge' => array(1280, 745));
-      $Size = Gdn::Config('Garden.Format.EmbedSize', 'normal');
+      $Size = C('Garden.Format.EmbedSize', 'normal');
       
       // We allow custom sizes <Width>x<Height>
       if (!isset($Sizes[$Size])) {

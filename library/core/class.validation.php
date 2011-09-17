@@ -9,24 +9,17 @@ Contact Vanilla Forums Inc. at support [at] vanillaforums [dot] com
 */
 
 /**
- * Manages data integrity validation rules. Can automatically define a set of
- * validation rules based on a @@Schema with $this->GenerateBySchema($Schema);
+ * Manages data integrity validation rules. 
+ * 
+ * Can automatically define a set of validation rules based on a 
+ * @@Schema with $this->GenerateBySchema($Schema);
  *
  *
- * @author Mark O'Sullivan
- * @copyright 2009 Mark O'Sullivan
- * @license http://www.opensource.org/licenses/gpl-2.0.php GPL
+ * @author Mark O'Sullivan <mark@vanillaforums.com>
+ * @copyright 2003 Vanilla Forums, Inc
+ * @license http://www.opensource.org/licenses/gpl-2.0.php GPLv2
  * @package Garden
- * @version @@GARDEN-VERSION@@
- * @namespace Garden.Core
- */
-
-
-/**
- * Manages data integrity validation rules. Can automatically define a set of
- * validation rules based on a @@Schema with $this->GenerateBySchema($Schema);
- *
- * @package Garden
+ * @since 2.0
  */
 class Gdn_Validation {
 
@@ -523,7 +516,7 @@ class Gdn_Validation {
          $this->_ValidationResults = array();
 
       // Check for a honeypot (anti-spam input)
-      $HoneypotName = Gdn::Config('Garden.Forms.HoneypotName', '');
+      $HoneypotName = C('Garden.Forms.HoneypotName', '');
       $HoneypotContents = GetPostValue($HoneypotName, '');
       if ($HoneypotContents != '')
          $this->AddValidationResult($HoneypotName, "You've filled our honeypot! We use honeypots to help prevent spam. If you're  not a spammer or a bot, you should contact the application administrator for help.");

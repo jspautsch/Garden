@@ -16,14 +16,12 @@ Contact Vanilla Forums Inc. at support [at] vanillaforums [dot] com
  *
  * This is a static class that hooks into the SPL autoloader.
  *
- * @author Tim Gunter
- * @copyright 2003 Mark O'Sullivan
- * @license http://www.opensource.org/licenses/gpl-2.0.php GPL
+ * @author Tim Gunter <tim@vanillaforums.com>
+ * @copyright 2003 Vanilla Forums, Inc
+ * @license http://www.opensource.org/licenses/gpl-2.0.php GPLv2
  * @package Garden
- * @version @@GARDEN-VERSION@@
- * @namespace Garden.Core
+ * @since 2.0.16
  */
-
 class Gdn_Autoloader {
 
    /**
@@ -180,6 +178,7 @@ class Gdn_Autoloader {
          
          // Drill to the caches associated with this map type
          foreach (self::$Maps as $MapHash => &$Map) {
+            $MapType2 = $Map->MapType();
             if ($Map->MapType() != $MapType) continue;
             
             $MapContext = self::GetContextType($MapHash);
@@ -252,11 +251,11 @@ class Gdn_Autoloader {
       if (!preg_match("/^[a-zA-Z0-9_\x7f-\xff]*$/", $ClassName))
          return;
       
-      $MapType = self::GetMapType($ClassName);
+      $MapType = GetValue('MapType', $Options, self::GetMapType($ClassName));
       
       $DefaultOptions = array(
          'Quiet'              => FALSE,
-         'RespectPriorities'  => TRUE
+         'RespectPriorities'  => TRUE,
       );
       $Options = array_merge($DefaultOptions, $Options);
       
@@ -284,6 +283,7 @@ class Gdn_Autoloader {
       
       $MapGroupHashes = GetValue($MapGroupIdentifier, self::$MapGroups, array());
       
+      $PriorityHashes = array();
       foreach ($MapGroupHashes as $MapHash => $Trash) {
          $ThisMapType = self::Map($MapHash)->MapType();
          // We're restricting this priority to a certain maptype, so exclude non matchers

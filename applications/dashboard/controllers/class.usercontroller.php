@@ -387,7 +387,7 @@ class UserController extends DashboardController {
       
       // Determine if username can be edited
       $this->CanEditUsername = TRUE;
-      $this->CanEditUsername = $this->CanEditUsername & Gdn::Config("Garden.Profile.EditUsernames");
+      $this->CanEditUsername = $this->CanEditUsername & C("Garden.Profile.EditUsernames");
       $this->CanEditUsername = $this->CanEditUsername | Gdn::Session()->CheckPermission('Garden.Users.Edit');
 
       $RoleModel = new RoleModel();
